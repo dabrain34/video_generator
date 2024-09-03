@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <signal.h>
 #include <video_generator.h>
+#ifndef _WIN32
 #include "getopt_long.h"
+#endif
 /* ----------------------------------------------------------------------------------- */
 
 #define WIDTH 720
@@ -13,7 +15,7 @@
 static video_generator_settings cfg;
 static uint32_t max_frames;
 
-
+#ifndef _WIN32
 void usage(char *progname) {
     printf("Usage: %s [options...]\n", progname);
     printf("  or:  %s [options...] -- [audio output-specific options]\n", progname);
@@ -75,6 +77,7 @@ int parse_options(int argc, char **argv) {
     }
     return optind;
 }
+#endif
 
 int main(int argc, char* argv[]) {
 
@@ -90,7 +93,9 @@ int main(int argc, char* argv[]) {
   max_frames = MAX_FRAMES;
   cfg.format = 420;
 
+#ifndef _WIN32
   parse_options(argc, argv);
+#endif
 
   if (0 != video_generator_init(&cfg, &gen)) {
     printf("Error: cannot initialize the generator.\n");

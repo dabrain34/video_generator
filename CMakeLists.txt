@@ -21,17 +21,24 @@ set(lib_headers
 
 set(av_gen_src
   ${sd}/examples/avgen.c
-  ${sd}/examples/getopt_long.c
 )
 
+if (WIN32)
+set(video_gen_src
+  ${sd}/examples/videogen.c
+)
+
+else ()
 set(video_gen_src
   ${sd}/examples/videogen.c
   ${sd}/examples/getopt_long.c
 )
+endif()
 
 add_library(videogenerator ${lib_sources})
 install(TARGETS videogenerator ARCHIVE DESTINATION lib)
 install(FILES ${lib_headers} DESTINATION include)
+
 
 add_executable(${app_video} ${video_gen_src} ${lib_sources})
 add_executable(${app_av} ${av_gen_src} ${lib_sources})
