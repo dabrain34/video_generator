@@ -9,21 +9,21 @@
 /* ----------------------------------------------------------------------------------- */
 
 #if defined(_WIN32)
- 
+
 #define WIN32_LEAN_AND_MEAN
 
   DWORD WINAPI thread_wrapper_function(LPVOID param) {
     thread* handle = (thread*)param;
-    if (NULL == handle) { return 0; } 
-    if (NULL == handle->func) { return 0; } 
+    if (NULL == handle) { return 0; }
+    if (NULL == handle->func) { return 0; }
     handle->func(handle->user);
     return 0;
   }
 
   thread* thread_alloc(thread_function func, void* param) {
     thread* t = (thread*)malloc(sizeof(thread));
-    if (NULL == t) { return NULL; } 
-    if (NULL == func) { return NULL; } 
+    if (NULL == t) { return NULL; }
+    if (NULL == func) { return NULL; }
     t->user = param;
     t->handle = CreateThread(NULL, 0, thread_wrapper_function, t, 0, &t->thread_id);
     t->func = func;
@@ -35,38 +35,38 @@
   }
 
   int thread_join(thread* t) {
-    if (NULL == t) { return -1; } 
+    if (NULL == t) { return -1; }
     DWORD r = WaitForSingleObject(t->handle, INFINITE);
-    if (WAIT_OBJECT_0 == r) { return 0 ; } 
-    else if (WAIT_ABANDONED == r) { return -2; } 
-    else if (WAIT_FAILED) { return -3; } 
+    if (WAIT_OBJECT_0 == r) { return 0 ; }
+    else if (WAIT_ABANDONED == r) { return -2; }
+    else if (WAIT_FAILED) { return -3; }
     return 0;
   }
 
   int mutex_init(mutex* m) {
     if (NULL == m) { return -1; }
     m->handle = CreateMutex(NULL, FALSE, NULL); /* default security, not owned by calling thread, unnamed. */
-    if (NULL == m->handle) { return -2; } 
+    if (NULL == m->handle) { return -2; }
     return 0;
   }
 
   int mutex_destroy(mutex* m) {
-    if (NULL == m) { return -1; } 
-    if (0 == CloseHandle(m->handle)) { return -2; } 
+    if (NULL == m) { return -1; }
+    if (0 == CloseHandle(m->handle)) { return -2; }
     return 0;
   }
 
   int mutex_lock(mutex* m) {
     if (NULL == m) { return -1; }
     DWORD r = WaitForSingleObject(m->handle, INFINITE);
-    if (WAIT_OBJECT_0 == r) { return 0 ; } 
-    else if (WAIT_ABANDONED == r) { return -2; } 
+    if (WAIT_OBJECT_0 == r) { return 0 ; }
+    else if (WAIT_ABANDONED == r) { return -2; }
     return 0;
   }
 
   int mutex_unlock(mutex* m) {
-    if (NULL == m) { return -1; } 
-    if (!ReleaseMutex(m->handle)) { return -2; } 
+    if (NULL == m) { return -1; }
+    if (!ReleaseMutex(m->handle)) { return -2; }
     return 0;
   }
 
@@ -82,7 +82,7 @@
   thread* thread_alloc(thread_function func, void* param) {
     thread* t;
     int r;
-    if (NULL == func) { return NULL; } 
+    if (NULL == func) { return NULL; }
     t = (thread*)malloc(sizeof(thread));
     if (!t) { return NULL; }
     t->func = func;
@@ -103,7 +103,7 @@
   }
 
   int mutex_destroy(mutex* m) {
-    if (NULL == m) { return -1; } 
+    if (NULL == m) { return -1; }
     if (0 != pthread_mutex_destroy(&m->handle)) { return -2; }
     return 0;
   }
@@ -122,7 +122,7 @@
 
   int thread_join(thread* t) {
     if (NULL == t) { return -1; }
-    if (0 != pthread_join(t->handle, NULL)) { return -2; } 
+    if (0 != pthread_join(t->handle, NULL)) { return -2; }
     return 0;
   }
 
@@ -133,9 +133,9 @@
 /* ----------------------------------------------------------------------------------- */
 
 /*
-  Easy embeddable cross-platform high resolution timer function. For each 
-  platform we select the high resolution timer. You can call the 'ns()' 
-  function in your file after embedding this. 
+  Easy embeddable cross-platform high resolution timer function. For each
+  platform we select the high resolution timer. You can call the 'ns()'
+  function in your file after embedding this.
 */
 #include <stdint.h>
 #if defined(__linux)
@@ -213,18 +213,22 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
   video_generator_char* c = NULL;
   int num_frames; /* used for bip/bop calculations. */
 
-  if (!g) { return -1; } 
-  if (!cfg) { return -2; } 
-  if (!cfg->width) { return -3; } 
-  if (!cfg->height) { return -4; } 
-  if (!cfg->fps) { return -5; } 
-  
+  if (!g) { return -1; }
+  if (!cfg) { return -2; }
+  if (!cfg->width) { return -3; }
+  if (!cfg->height) { return -4; }
+  if (!cfg->fps) { return -5; }
+
+  cfg->factor = 0.5;
+
   /* initalize members */
   g->frame = 0;
+  g->factor = cfg->factor;
   g->ybytes = cfg->width * cfg->height;
-  g->ubytes = (cfg->width * 0.5) * (cfg->height * 0.5);
+  g->ubytes = (cfg->width * g->factor) * (cfg->height * g->factor);
   g->vbytes = g->ubytes;
   g->nbytes = g->ybytes + g->ubytes + g->vbytes;
+
   g->width = cfg->width;
   g->height = cfg->height;
   g->fps = (1.0 / cfg->fps) * 1000 * 1000;
@@ -233,13 +237,6 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
   g->u = g->y + g->ybytes;
   g->v = g->y + (g->ybytes + g->ubytes);
 
-  g->planes[0] = g->y;
-  g->planes[1] = g->u;
-  g->planes[2] = g->v;
-
-  g->strides[0] = cfg->width;
-  g->strides[1] = cfg->width * 0.5;
-  g->strides[2] = cfg->width * 0.5;
 
   g->step = (1.0 / (5 * cfg->fps)); /* move the bar in 5 seconds from top to bottom */
   g->perc = 0.0;
@@ -301,7 +298,7 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
     g->audio_callback = cfg->audio_callback;
 
     /* alloc the buffer. */
-    g->audio_buffer = (int16_t*)malloc(g->audio_nbytes); 
+    g->audio_buffer = (int16_t*)malloc(g->audio_nbytes);
     if (!g->audio_buffer) {
       printf("Error while allocating the audio buffer.");
       g->audio_buffer = NULL;
@@ -366,10 +363,10 @@ int video_generator_clear(video_generator* g) {
     }
   }
 
-  if (!g) { return -1; } 
-  if (!g->width) { return -2; } 
-  if (!g->height) { return -3; } 
-  
+  if (!g) { return -1; }
+  if (!g->width) { return -2; }
+  if (!g->height) { return -3; }
+
   if (g->y) {
     free(g->y);
   }
@@ -387,12 +384,7 @@ int video_generator_clear(video_generator* g) {
   g->ubytes = 0;
   g->vbytes = 0;
   g->nbytes = 0;
-  g->strides[0] = 0;
-  g->strides[1] = 0;
-  g->strides[2] = 0;
-  g->planes[0] = NULL;
-  g->planes[1] = NULL;
-  g->planes[2] = NULL;
+  g->factor = 0.5;
 
   g->audio_nchannels = 0;
   g->audio_nseconds = 0;
@@ -419,7 +411,7 @@ int video_generator_update(video_generator* g) {
   char timebuf[512] = { 0 } ;
   int text_r, text_g, text_b;
   int rc, gc, bc, yc, uc, vc, dx;
-  int colors[] = { 
+  int colors[] = {
     255, 255, 255,  // white
     255, 255, 0,    // yellow
     0,   255, 255,  // cyan
@@ -429,9 +421,9 @@ int video_generator_update(video_generator* g) {
     0,   0,   255   // blue
   };
 
-  if (!g) { return -1; } 
-  if (!g->width) { return -2; } 
-  if (!g->height) { return -3; } 
+  if (!g) { return -1; }
+  if (!g->width) { return -2; }
+  if (!g->height) { return -3; }
 
   text_r = 0;
   text_g = 0;
@@ -488,11 +480,11 @@ int video_generator_update(video_generator* g) {
   for (i = start_y; i < (start_y + nlines); ++i) {
     memset(g->y + (i * g->width), yc, g->width);
   }
-  
+
   /* fill u and v channel */
-  start_y = start_y / 2;
-  stride = g->width * 0.5;
-  end_y = start_y + nlines/ 2;
+  start_y = start_y * g->factor;
+  stride = g->width * g->factor;
+  end_y = start_y + nlines * g->factor;
 
   for (i = start_y; i < end_y; ++i) {
     memset(g->u + i * stride, uc, stride);
@@ -534,7 +526,7 @@ int video_generator_update(video_generator* g) {
 
   fill(g, text_x, text_y, text_w, 100, text_r, text_g, text_b);
 
-  sprintf(timebuf, "%03llu:%02llu:%02llu:%02llu", days, hours, minutes, seconds);
+  sprintf(timebuf, "%03zu:%02zu:%02zu:%02zu", days, hours, minutes, seconds);
   add_number_string(g, timebuf, text_x + 20, text_y + 20);
 
   g->frame++;
@@ -543,7 +535,7 @@ int video_generator_update(video_generator* g) {
 
 static int fill(video_generator* gen, int x, int y, int w, int h, int r, int g, int b) {
 
-  // Y 
+  // Y
   int yc = RGB2Y(r,g,b);
   int uc = RGB2U(r,g,b);
   int vc = RGB2V(r,g,b);
@@ -557,12 +549,12 @@ static int fill(video_generator* gen, int x, int y, int w, int h, int r, int g, 
   int hh = h / 2;
   int ww = w / 2;
 
-  // y 
+  // y
   for (j = y; j < (y + h); ++j) {
     memset(gen->y + j * gen->width + x, yc, w);
   }
 
-  // u and v 
+  // u and v
   for (j = yy; j < (yy + hh); ++j) {
     memset(gen->u + j * half_w + xx, uc, (ww));
     memset(gen->v + j * half_w + xx, vc, (ww));
@@ -609,11 +601,11 @@ static int add_char(video_generator* gen, video_generator_char* kar, int x, int 
   int src_dx = 0;
   int dest_dx = 0;
 
-  uint8_t* pixels = (uint8_t*)numbersfont_pixel_data; 
+  uint8_t* pixels = (uint8_t*)numbersfont_pixel_data;
 
-  if (!kar) { return -1; } 
-  if (!gen) { return -2; } 
-  
+  if (!kar) { return -1; }
+  if (!gen) { return -2; }
+
   for (i = kar->x, dest_x = x; i < (kar->x + kar->width); ++i, ++dest_x) {
     for (j = kar->y, dest_y = y; j < (kar->y + kar->height); ++j, ++dest_y) {
       src_dx = j * gen->font_w + i;
@@ -633,7 +625,7 @@ static void* audio_thread(void* gen) {
   video_generator* g;
   uint8_t must_stop;
   uint64_t now, delay, timeout, dx, bip_start_dx, bip_end_dx, bop_start_dx, bop_end_dx;
-  uint32_t nbytes = 0; 
+  uint32_t nbytes = 0;
   uint8_t* tmp_buffer = NULL;
   uint8_t* audio_buffer = NULL;
   int bytes_to_end = 0;
@@ -657,7 +649,7 @@ static void* audio_thread(void* gen) {
     printf("Not supposed to happen but the audio thread cannot get a handle to the generator.\n");
     exit(1);
   }
-  
+
   /* init */
   now = 0;
   timeout = 0;
@@ -695,7 +687,7 @@ static void* audio_thread(void* gen) {
       /* Playing bip? */
       is_bip = (dx >= bip_start_dx && dx <= bip_end_dx) ? 1 : 0;
       is_bop = (dx >= bop_start_dx && dx <= bop_end_dx) ? 1 : 0;
-      
+
       bytes_to_end = bytes_total - dx;
       if (0 == bytes_to_end) {
         dx = 0;
@@ -706,7 +698,7 @@ static void* audio_thread(void* gen) {
 
         /* We need to read some bytes till the end, then from the start. */
         memcpy(tmp_buffer, audio_buffer+dx, bytes_to_end-1);
-        
+
         /* Read from the start. */
         bytes_from_start = bytes_needed - bytes_to_end;
         memcpy(tmp_buffer + bytes_to_end, audio_buffer, bytes_from_start);

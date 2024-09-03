@@ -15,8 +15,8 @@ uint64_t total_audio_frames = 0;
 video_generator_settings cfg;
 video_generator gen;
 uint8_t must_run = 1;
-uint64_t goal_frame = 0;
-uint64_t goal_copy = 0;
+uint64_t goal_frame = 30;
+uint64_t goal_copy = 30;
 
 /* ----------------------------------------------------------------------------------- */
 
@@ -65,20 +65,19 @@ int main() {
 
   while(must_run) {
 
-    goal_copy = goal_frame;
-
     while (gen.frame < goal_copy) {
 
       video_generator_update(&gen);
 
       if (1 != fwrite((char*)gen.y, gen.nbytes, 1, video_fp)) {
-        printf("Failed to write frame %llu to file.\n", gen.frame);
+        printf("Failed to write frame %zu to file.\n", gen.frame);
       }
 
-      printf("Frame: %llu\n", gen.frame);
+      printf("Frame: %zu/%zu\n", gen.frame, goal_copy);
     }
+    must_run = 0;
   }
-    
+
   video_generator_clear(&gen);
 
   if (0 != fclose(video_fp)) {

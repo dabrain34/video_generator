@@ -1,0 +1,120 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <signal.h>
+#include <video_generator.h>
+#include "getopt_long.h"
+/* ----------------------------------------------------------------------------------- */
+
+#define WIDTH 720
+#define HEIGHT 480
+#define FPS     3
+#define MAX_FRAMES 30
+
+static video_generator_settings cfg;
+static int max_frames;
+
+
+void usage(char *progname) {
+    printf("Usage: %s [options...]\n", progname);
+    printf("  or:  %s [options...] -- [audio output-specific options]\n", progname);
+
+    printf("\n");
+    printf("Mandatory arguments to long options are mandatory for short options too.\n");
+
+    printf("\n");
+    printf("Options:\n");
+    printf("    -h, --help          show this help\n");
+    printf("    -W, --width         width\n");
+    printf("    -H, --height        height\n");
+    printf("    -n, --max-frames    height\n");
+    printf("    -F, --fps=   height\n");
+}
+
+int parse_options(int argc, char **argv) {
+    // prevent unrecognised arguments from being shunted to the audio driver
+    setenv("POSIXLY_CORRECT", "", 1);
+
+    static struct option long_options[] = {
+        {"help",      no_argument,        NULL, 'h'},
+        {"daemon",    no_argument,        NULL, 'd'},
+        {"width",     required_argument,  NULL, 'W'},
+        {"height",    required_argument,  NULL, 'H'},
+        {"max-frames",required_argument,  NULL, 'n'},
+        {"fps",       required_argument,  NULL, 'f'},
+        {NULL,        0,                  NULL,   0}
+    };
+
+    int opt;
+    while ((opt = getopt_long(argc, argv,
+                              "+hW:H:M:F:",
+                              long_options, NULL)) > 0) {
+        switch (opt) {
+            default:
+                usage(argv[0]);
+                exit(1);
+            case 'h':
+                usage(argv[0]);
+                exit(0);
+            case 'W':
+                cfg.width = atoi(optarg);
+                break;
+            case 'H':
+                cfg.height = atoi(optarg);
+                break;
+            case 'F':
+                cfg.fps = atoi(optarg);
+                break;
+            case 'M':
+                max_frames = atoi(optarg);
+                break;
+        }
+    }
+    return optind;
+}
+
+int main(int argc, char* argv[]) {
+
+  FILE* video_fp = NULL;
+
+  video_generator gen;
+
+  video_fp = fopen("output.yuv", "wb");
+
+  cfg.width = WIDTH;
+  cfg.height = HEIGHT;
+  cfg.fps = FPS;
+  max_frames = MAX_FRAMES;
+
+  parse_options(argc, argv);
+
+  if (0 != video_generator_init(&cfg, &gen)) {
+    printf("Error: cannot initialize the generator.\n");
+    exit(1);
+  }
+
+  while(1) {
+
+    printf("Frame: %llu\n", gen.frame);
+
+    video_generator_update(&gen);
+
+    // write video planes to a file
+    fwrite((char*)gen.y, gen.ybytes,1,  video_fp);
+    fwrite((char*)gen.u, gen.ubytes,1, video_fp);
+    fwrite((char*)gen.v, gen.vbytes,1, video_fp);
+
+    if (gen.frame > MAX_FRAMES) {
+      break;
+    }
+
+  }
+
+fclose(video_fp);
+
+video_generator_clear(&gen);
+}
+
+/* ----------------------------------------------------------------------------------- */
+
+
+
