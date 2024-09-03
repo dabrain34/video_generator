@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ ! -d build.release ] ; then 
+if [ ! -d build.release ] ; then
     mkdir build.release
 fi
 
@@ -11,7 +11,7 @@ is_mac=n
 is_linux=n
 is_win=n
 
-if [ ! -d build.release ] ; then 
+if [ ! -d build.release ] ; then
     mkdir build.release
 fi
 
@@ -31,15 +31,15 @@ extern_path=${d}/../extern/${triplet}
 install_path=${d}/../install/${triplet}
 
 cd build.release
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${install_path} ../ 
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${install_path} ../..
 cmake --build . --config Release --target install
 
 if [ -d ${install_path} ] ; then
     cd ${install_path}/bin
-    ./example
+    ./videogen
 else
     if [ "${is_win}" = "y" ] ; then
         cd Release
-        ./example.exe
+        ./videogen.exe
     fi
 fi

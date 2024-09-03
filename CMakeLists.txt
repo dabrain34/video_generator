@@ -42,13 +42,10 @@ if (UNIX AND NOT APPLE)
 endif()
 
 if (WIN32)
-  target_link_libraries(${app} videogenerator)
+  target_link_libraries(${app_video} videogenerator)
 else()
   target_link_libraries(${app} videogenerator pthread)
 endif()
 
-install(TARGETS ${app} DESTINATION bin)
-
-
-
+install(TARGETS ${app_video} ${app_av} DESTINATION bin)
 
