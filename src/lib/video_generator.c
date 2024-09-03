@@ -205,6 +205,28 @@ static int add_number_string(video_generator* gen, const char* str, int x, int y
 static int add_char(video_generator* gen, video_generator_char* kar, int x, int y);
 static void* audio_thread(void* gen); /* When we need to generate audio, we do this in another thread. So be aware that the callback will be called from this thread! */
 
+
+void select_yuv_format (video_generator* g, video_generator_settings* cfg) {
+  switch (cfg->format) {
+    case 400:
+      g->u_factor = 0.0;
+      g->v_factor = 0.0;
+      break;
+    case 444:
+      g->u_factor = 1.0;
+      g->v_factor = 1.0;
+      break;
+    case 422:
+      g->u_factor = 0.5;
+      g->v_factor = 1.0;
+      break;
+    case 420:
+    default:
+      g->u_factor = 0.5;
+      g->v_factor = 0.5;
+  }
+}
+
 int video_generator_init(video_generator_settings* cfg, video_generator* g) {
 
   int i = 0;
@@ -218,14 +240,15 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
   if (!cfg->width) { return -3; }
   if (!cfg->height) { return -4; }
   if (!cfg->fps) { return -5; }
+  if (!cfg->format) { return -6; }
 
-  cfg->factor = 0.5;
+
 
   /* initalize members */
   g->frame = 0;
-  g->factor = cfg->factor;
+  select_yuv_format(g, cfg);
   g->ybytes = cfg->width * cfg->height;
-  g->ubytes = (cfg->width * g->factor) * (cfg->height * g->factor);
+  g->ubytes = (cfg->width * g->u_factor) * (cfg->height * g->v_factor);
   g->vbytes = g->ubytes;
   g->nbytes = g->ybytes + g->ubytes + g->vbytes;
 
@@ -384,7 +407,8 @@ int video_generator_clear(video_generator* g) {
   g->ubytes = 0;
   g->vbytes = 0;
   g->nbytes = 0;
-  g->factor = 0.5;
+  g->u_factor = 0.0;
+  g->v_factor = 0.0;
 
   g->audio_nchannels = 0;
   g->audio_nseconds = 0;
@@ -482,9 +506,9 @@ int video_generator_update(video_generator* g) {
   }
 
   /* fill u and v channel */
-  start_y = start_y * g->factor;
-  stride = g->width * g->factor;
-  end_y = start_y + nlines * g->factor;
+  start_y = start_y * g->u_factor;
+  stride = g->width * g->v_factor;
+  end_y = start_y + nlines * g->u_factor;
 
   for (i = start_y; i < end_y; ++i) {
     memset(g->u + i * stride, uc, stride);
@@ -542,12 +566,11 @@ static int fill(video_generator* gen, int x, int y, int w, int h, int r, int g, 
   int j = 0;
 
   // UV
-  int xx = x / 2;
-  int yy = y / 2;
-  int half_w = gen->width / 2;
-  int half_h = gen->height / 2;
-  int hh = h / 2;
-  int ww = w / 2;
+  int xx = x * gen->u_factor;
+  int yy = y * gen->v_factor;
+  int half_w = gen->width * gen->u_factor;
+  int hh = h * gen->v_factor;
+  int ww = w * gen->u_factor;
 
   // y
   for (j = y; j < (y + h); ++j) {

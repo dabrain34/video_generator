@@ -225,7 +225,7 @@ struct video_generator_settings {
   uint32_t width;
   uint32_t height;
   uint32_t fps;
-  double factor;
+  uint32_t format;
   uint16_t bip_frequency;
   uint16_t bop_frequency;
   video_generator_audio_callback audio_callback;
@@ -244,7 +244,8 @@ struct video_generator {
   uint32_t ubytes;                                        /* number of bytes in the u-plane. */
   uint32_t vbytes;                                        /* number of bytes in the v-plane. */
   uint32_t nbytes;                                        /* total number of bytes in the allocated buffer for the yuv420p buffer. */
-  double   factor;
+  double   u_factor;
+  double   v_factor;
   int fps_num;                                            /* framerate numerator e.g. 1. */
   int fps_den;                                            /* framerate denominator e.g. 25. */
   double fps;                                             /* framerate in microseconds, 1 fps == 1.000.000 us. */

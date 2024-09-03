@@ -11,7 +11,7 @@
 #define MAX_FRAMES 30
 
 static video_generator_settings cfg;
-static int max_frames;
+static uint32_t max_frames;
 
 
 void usage(char *progname) {
@@ -41,12 +41,13 @@ int parse_options(int argc, char **argv) {
         {"height",    required_argument,  NULL, 'H'},
         {"max-frames",required_argument,  NULL, 'n'},
         {"fps",       required_argument,  NULL, 'f'},
+        {"format",    required_argument,  NULL, 'F'},
         {NULL,        0,                  NULL,   0}
     };
 
     int opt;
     while ((opt = getopt_long(argc, argv,
-                              "+hW:H:M:F:",
+                              "+hW:H:M:f:F:",
                               long_options, NULL)) > 0) {
         switch (opt) {
             default:
@@ -61,8 +62,11 @@ int parse_options(int argc, char **argv) {
             case 'H':
                 cfg.height = atoi(optarg);
                 break;
-            case 'F':
+            case 'f':
                 cfg.fps = atoi(optarg);
+                break;
+            case 'F':
+                cfg.format = atoi(optarg);
                 break;
             case 'M':
                 max_frames = atoi(optarg);
@@ -84,6 +88,7 @@ int main(int argc, char* argv[]) {
   cfg.height = HEIGHT;
   cfg.fps = FPS;
   max_frames = MAX_FRAMES;
+  cfg.format = 420;
 
   parse_options(argc, argv);
 
@@ -94,16 +99,16 @@ int main(int argc, char* argv[]) {
 
   while(1) {
 
-    printf("Frame: %llu\n", gen.frame);
+    printf("Frame: %zu\n", gen.frame);
 
     video_generator_update(&gen);
 
     // write video planes to a file
-    fwrite((char*)gen.y, gen.ybytes,1,  video_fp);
-    fwrite((char*)gen.u, gen.ubytes,1, video_fp);
-    fwrite((char*)gen.v, gen.vbytes,1, video_fp);
+    fwrite((char*)gen.y, gen.ybytes, 1,  video_fp);
+    fwrite((char*)gen.u, gen.ubytes, 1, video_fp);
+    fwrite((char*)gen.v, gen.vbytes, 1, video_fp);
 
-    if (gen.frame > MAX_FRAMES) {
+    if (gen.frame > max_frames) {
       break;
     }
 
