@@ -7,18 +7,13 @@
 #endif
 /* ----------------------------------------------------------------------------------- */
 
-#define WIDTH 720
-#define HEIGHT 480
-#define FPS     3
-#define MAX_FRAMES 30
-
 static video_generator_settings cfg;
 static uint32_t max_frames;
 
 #ifndef _WIN32
 void usage(char *progname) {
     printf("Usage: %s [options...]\n", progname);
-    printf("  or:  %s [options...] -- [audio output-specific options]\n", progname);
+    printf("  or:  %s [options...]\n", progname);
 
     printf("\n");
     printf("Mandatory arguments to long options are mandatory for short options too.\n");
@@ -29,7 +24,9 @@ void usage(char *progname) {
     printf("    -W, --width         width\n");
     printf("    -H, --height        height\n");
     printf("    -n, --max-frames    height\n");
-    printf("    -F, --fps=   height\n");
+    printf("    -F, --fps           fps\n");
+    printf("    -f, --format        format\n");
+    printf("    -b, --bitdepth      bitdepth\n");
 }
 
 int parse_options(int argc, char **argv) {
@@ -44,12 +41,13 @@ int parse_options(int argc, char **argv) {
         {"max-frames",required_argument,  NULL, 'n'},
         {"fps",       required_argument,  NULL, 'f'},
         {"format",    required_argument,  NULL, 'F'},
+        {"bitdepth",  required_argument,  NULL, 'b'},
         {NULL,        0,                  NULL,   0}
     };
 
     int opt;
     while ((opt = getopt_long(argc, argv,
-                              "+hW:H:M:f:F:",
+                              "+hW:H:M:f:F:b:",
                               long_options, NULL)) > 0) {
         switch (opt) {
             default:
@@ -70,6 +68,9 @@ int parse_options(int argc, char **argv) {
             case 'F':
                 cfg.format = atoi(optarg);
                 break;
+            case 'b':
+                cfg.bitdepth = atoi(optarg);
+                break;
             case 'M':
                 max_frames = atoi(optarg);
                 break;
@@ -87,11 +88,12 @@ int main(int argc, char* argv[]) {
 
   video_fp = fopen("output.yuv", "wb");
 
-  cfg.width = WIDTH;
-  cfg.height = HEIGHT;
-  cfg.fps = FPS;
-  max_frames = MAX_FRAMES;
+  cfg.width = 720;
+  cfg.height = 480;
+  cfg.fps = 3;
+  max_frames = 30;
   cfg.format = 420;
+  cfg.bitdepth = 8;
 
 #ifndef _WIN32
   parse_options(argc, argv);

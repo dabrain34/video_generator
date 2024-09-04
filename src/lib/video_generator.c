@@ -227,6 +227,24 @@ void select_yuv_format (video_generator* g, video_generator_settings* cfg) {
   }
 }
 
+void select_bitdepth (video_generator* g, video_generator_settings* cfg) {
+  switch (cfg->bitdepth) {
+    case 10:
+      g->pixel_size_in_bytes = 2;
+      g->pixel_factor = 4;
+      break;
+    case 12:
+      g->pixel_size_in_bytes = 2;
+      g->pixel_factor = 16;
+      break;
+    case 8:
+    default:
+     g->pixel_size_in_bytes = 1;
+     g->pixel_factor = 1;
+
+  }
+}
+
 int video_generator_init(video_generator_settings* cfg, video_generator* g) {
 
   uint32_t i = 0;
@@ -241,16 +259,18 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
   if (!cfg->height) { return -4; }
   if (!cfg->fps) { return -5; }
   if (!cfg->format) { return -6; }
+  if (!cfg->bitdepth) { return -7; }
 
   /* initalize members */
   g->frame = 0;
   select_yuv_format(g, cfg);
-  g->ybytes = cfg->width * cfg->height;
-  g->ubytes = (uint32_t)(cfg->width * g->u_factor) * (uint32_t)(cfg->height * g->v_factor);
+  select_bitdepth(g, cfg);
+  g->ybytes = cfg->width * cfg->height * g->pixel_size_in_bytes;
+  g->ubytes = (uint32_t)(cfg->width * g->u_factor) * (uint32_t)(cfg->height * g->v_factor) * g->pixel_size_in_bytes;
   g->vbytes = g->ubytes;
   g->nbytes = g->ybytes + g->ubytes + g->vbytes;
 
-  g->width = cfg->width;
+  g->width = cfg->width * g->pixel_size_in_bytes;
   g->height = cfg->height;
   g->fps = (1.0 / cfg->fps) * 1000 * 1000;
 
@@ -427,10 +447,11 @@ int video_generator_update(video_generator* g) {
   int text_w, text_x, text_y;
   int32_t bar_h, start_y, nlines, h;
   uint64_t days, hours, minutes, seconds;
-  uint32_t stride, end_y, i;
+  uint32_t stride, end_y, i, k;
   char timebuf[512] = { 0 } ;
   int text_r, text_g, text_b;
-  int rc, gc, bc, yc, uc, vc, dx;
+  int rc, gc, bc, dx;
+  uint16_t yc, uc, vc;
   int colors[] = {
     255, 255, 255,  // white
     255, 255, 0,    // yellow
@@ -492,13 +513,20 @@ int video_generator_update(video_generator* g) {
   rc = 255 - (int)(g->perc * 255);
   gc = 30 + (int)(g->perc * 235);
   bc = 150 + (int)(g->perc * 205);
-  yc = RGB2Y(rc, gc, bc);
-  uc = RGB2U(rc, gc, bc);
-  vc = RGB2V(rc, gc, bc);
+  yc = RGB2Y(rc, gc, bc) * g->pixel_factor;
+  uc = RGB2U(rc, gc, bc) * g->pixel_factor;
+  vc = RGB2V(rc, gc, bc) * g->pixel_factor;
 
   /* fill y channel */
   for (i = start_y; i < (uint32_t)(start_y + nlines); ++i) {
-    memset(g->y + (i * g->width), yc, g->width);
+    if(g->pixel_size_in_bytes == 2) {
+      for(k = 0; k < g->width; k++) {
+        g->y[k + i * g->width] = (yc >> 8) & 0xFF;
+        g->y[k + i * g->width + 1] = yc & 0xFF;
+      }
+    } else {
+      memset(g->y + (i * g->width), yc, g->width);
+    }
   }
 
   /* fill u and v channel */
@@ -507,8 +535,17 @@ int video_generator_update(video_generator* g) {
   end_y = start_y + (int32_t)(nlines * g->u_factor);
 
   for (i = start_y; i < end_y; ++i) {
-    memset(g->u + i * stride, uc, stride);
-    memset(g->v + i * stride, vc, stride);
+    if(g->pixel_size_in_bytes == 2) {
+      for(k = 0; k < stride; k++) {
+        g->u[k + i * stride] = (uc >> 8) & 0xFF;
+        g->u[k + i * stride + 1] = uc & 0xFF;
+        g->v[k + i * stride] = (vc >> 8) & 0xFF;
+        g->v[k + i * stride + 1] = vc & 0xFF;
+      }
+    } else {
+      memset(g->u + i * stride, uc, stride);
+      memset(g->v + i * stride, vc, stride);
+    }
   }
 
   /* draw blip/blop visuals. */
@@ -556,10 +593,10 @@ int video_generator_update(video_generator* g) {
 static int fill(video_generator* gen, int x, int y, int w, int h, int r, int g, int b) {
 
   // Y
-  int yc = RGB2Y(r,g,b);
-  int uc = RGB2U(r,g,b);
-  int vc = RGB2V(r,g,b);
-  uint32_t j = 0;
+  uint16_t yc = RGB2Y(r,g,b) * gen->pixel_factor;
+  uint16_t uc = RGB2U(r,g,b) * gen->pixel_factor;
+  uint16_t vc = RGB2V(r,g,b) * gen->pixel_factor;
+  uint32_t j, k;
 
   // UV
   uint32_t xx = (uint32_t)(x * gen->u_factor);
@@ -570,13 +607,29 @@ static int fill(video_generator* gen, int x, int y, int w, int h, int r, int g, 
 
   // y
   for (j = y; j < (uint32_t)(y + h); ++j) {
-    memset(gen->y + j * gen->width + x, yc, w);
+    if(gen->pixel_size_in_bytes == 2) {
+      for(k = 0; k < w * gen->pixel_size_in_bytes; k+=1) {
+        gen->y[k + j * gen->width + x] = (yc >> 8) & 0xFF;
+        gen->y[k + j * gen->width + x + 1] = yc & 0xFF;
+      }
+    } else {
+      memset(gen->y + j * gen->width + x, yc,  w);
+    }
   }
 
   // u and v
   for (j = yy; j < (yy + hh); ++j) {
-    memset(gen->u + j * half_w + xx, uc, (ww));
-    memset(gen->v + j * half_w + xx, vc, (ww));
+    if (gen->pixel_size_in_bytes == 2) {
+      for(k = 0; k < ww * gen->pixel_size_in_bytes; k+=1) {
+        gen->u[k + j * half_w + xx] = (uc >> 8) & 0xFF;
+        gen->u[k + j * half_w + xx + 1] = uc & 0xFF;
+        gen->v[k + j * half_w + xx ] = (vc >> 8) & 0xFF;
+        gen->v[k + j * half_w + xx + 1] = vc & 0xFF;
+      }
+    } else {
+      memset(gen->u + j * half_w + xx, uc, (ww));
+      memset(gen->v + j * half_w + xx, vc, (ww));
+    }
   }
 
   return 0;
