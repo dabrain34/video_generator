@@ -265,7 +265,7 @@ struct video_generator {
   uint32_t audio_bip_millis;                              /* number of millis for the bip sound */
   uint32_t audio_bop_millis;                              /* number of millis for the bop sound */
   uint32_t audio_nbytes;                                  /* number of bytes in audio_buffer. */
-  uint64_t audio_nsamples;                                /* number of samples that are passed to the audio callback whenever needed. */
+  uint32_t audio_nsamples;                                /* number of samples that are passed to the audio callback whenever needed. */
   int16_t* audio_buffer;                                  /* this will contain the audio samples */
   video_generator_audio_callback audio_callback;          /* will be called from the thread when the user needs to process audio. */
   thread* audio_thread;                                   /* the audio callback is called from another thread to simulate microphone input.*/
