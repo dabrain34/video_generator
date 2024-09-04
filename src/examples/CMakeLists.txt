@@ -1,36 +1,36 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(app_video videogen)
-set(app_av audiovideogen)
+set(VG_APP_VGEN videogen)
+set(VG_APP_AVGEN audiovideogen)
 
 include_directories(
   ${CMAKE_CURRENT_LIST_DIR}/src/lib
 )
 
-set(av_gen_src
-  ${SOURCE_DIR}/examples/avgen.c
+set(VG_APP_AVGEN_SRC
+  ${VIDEO_GENERATOR_SOURCE_DIR}/examples/avgen.c
 )
 
 if (WIN32)
-set(video_gen_src
-  ${SOURCE_DIR}/examples/videogen.c
+set(VG_APP_VGEN_SRC
+  ${VIDEO_GENERATOR_SOURCE_DIR}/examples/videogen.c
 )
 else ()
-set(video_gen_src
-  ${SOURCE_DIR}/examples/videogen.c
-  ${SOURCE_DIR}/examples/getopt_long.c
+set(VG_APP_VGEN_SRC
+  ${VIDEO_GENERATOR_SOURCE_DIR}/examples/videogen.c
+  ${VIDEO_GENERATOR_SOURCE_DIR}/examples/getopt_long.c
 )
 endif()
 
-add_executable(${app_video} ${video_gen_src} ${lib_sources})
-add_executable(${app_av} ${av_gen_src} ${lib_sources})
+add_executable(${VG_APP_VGEN} ${VG_APP_VGEN_SRC})
+add_executable(${VG_APP_AVGEN} ${VG_APP_AVGEN_SRC} )
 
-target_link_libraries(${app_video} videogenerator)
-target_link_libraries(${app_av} videogenerator)
+target_link_libraries(${VG_APP_VGEN} ${VIDEO_GENERATOR_STATIC_LIB})
+target_link_libraries(${VG_APP_AVGEN} ${VIDEO_GENERATOR_STATIC_LIB})
 
 if (UNIX AND NOT APPLE)
-  target_link_libraries(${app_video} m)
-  target_link_libraries(${app_av} m)
+  target_link_libraries(${VG_APP_VGEN} m)
+  target_link_libraries(${VG_APP_AVGEN} m)
 endif()
 
-install(TARGETS ${app_video} ${app_av} DESTINATION bin)
+install(TARGETS ${VG_APP_VGEN} ${VG_APP_AVGEN} DESTINATION bin)

@@ -1,13 +1,16 @@
 cmake_minimum_required(VERSION 2.8)
 
-option(BUILD_EXAMPLES "Build demos" ON)
+option(BUILD_EXAMPLES "Build examples" ON)
 
-include(${CMAKE_CURRENT_LIST_DIR}/build/Triplet.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/build/Triplet.cmake)
 
-set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/src/)
+set(VIDEO_GENERATOR_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+set(VIDEO_GENERATOR_INCLUDE_DIR ${VIDEO_GENERATOR_SOURCE_DIR}/lib CACHE PATH "Path to video generator include directory")
+set(VIDEO_GENERATOR_LIB videogenerator CACHE PATH "The name of video generator library")
+set(VIDEO_GENERATOR_STATIC_LIB videogenerator-static CACHE PATH "The name of static video generator library")
 
 include_directories(
-  ${CMAKE_CURRENT_LIST_DIR}/src/lib
+  ${VIDEO_GENERATOR_INCLUDE_DIR}
 )
 
 add_subdirectory(src/lib)
