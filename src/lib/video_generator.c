@@ -222,6 +222,11 @@ static int add_number_string(video_generator* gen, const char* str, int x, int y
 static int add_char(video_generator* gen, video_generator_char* kar, int x, int y);
 static void* audio_thread(void* gen); /* When we need to generate audio, we do this in another thread. So be aware that the callback will be called from this thread! */
 
+#define DEFAULT_WIDTH     640
+#define DEFAULT_HEIGHT    480
+#define DEFAULT_FPS       3
+#define DEFAULT_FORMAT    420
+#define DEFAULT_BITDEPTH  8
 
 void select_yuv_format (video_generator* g, video_generator_settings* cfg) {
   switch (cfg->format) {
@@ -258,7 +263,6 @@ void select_bitdepth (video_generator* g, video_generator_settings* cfg) {
     default:
      g->pixel_size_in_bytes = 1;
      g->pixel_factor = 1;
-
   }
 }
 
@@ -272,11 +276,11 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
 
   if (!g) { return -1; }
   if (!cfg) { return -2; }
-  if (!cfg->width) { return -3; }
-  if (!cfg->height) { return -4; }
-  if (!cfg->fps) { return -5; }
-  if (!cfg->format) { return -6; }
-  if (!cfg->bitdepth) { return -7; }
+  if (!cfg->width) { cfg->width = DEFAULT_WIDTH; }
+  if (!cfg->height) { cfg->height = DEFAULT_HEIGHT; }
+  if (!cfg->fps) { cfg->fps = DEFAULT_FPS; }
+  if (!cfg->format) { cfg->format = DEFAULT_FORMAT; }
+  if (!cfg->bitdepth) { cfg->bitdepth = DEFAULT_BITDEPTH; }
 
   /* initalize members */
   g->frame = 0;

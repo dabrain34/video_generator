@@ -26,6 +26,8 @@
 
 static video_generator_settings cfg;
 static uint32_t max_frames;
+static char* filename;
+#define DEFAULT_FILENAME "output.yuv"
 
 #ifndef _WIN32
 void usage(char *progname) {
@@ -44,6 +46,7 @@ void usage(char *progname) {
     printf("    -F, --fps           fps\n");
     printf("    -f, --format        format\n");
     printf("    -b, --bitdepth      bitdepth\n");
+    printf("    -o, --output        filename, default " DEFAULT_FILENAME "\n");
 }
 
 int parse_options(int argc, char **argv) {
@@ -52,7 +55,7 @@ int parse_options(int argc, char **argv) {
 
     static struct option long_options[] = {
         {"help",      no_argument,        NULL, 'h'},
-        {"daemon",    no_argument,        NULL, 'd'},
+        {"output",    required_argument,  NULL, 'o'},
         {"width",     required_argument,  NULL, 'W'},
         {"height",    required_argument,  NULL, 'H'},
         {"max-frames",required_argument,  NULL, 'n'},
@@ -64,7 +67,7 @@ int parse_options(int argc, char **argv) {
 
     int opt;
     while ((opt = getopt_long(argc, argv,
-                              "+hW:H:M:f:F:b:",
+                              "+hW:H:M:f:F:b:o:",
                               long_options, NULL)) > 0) {
         switch (opt) {
             default:
@@ -90,6 +93,10 @@ int parse_options(int argc, char **argv) {
                 break;
             case 'M':
                 max_frames = atoi(optarg);
+            case 'o':
+                free(filename);
+                filename = (char*)malloc(strlen(optarg) + 1);
+                strcpy (filename,optarg);
                 break;
         }
     }
@@ -100,6 +107,9 @@ int parse_options(int argc, char **argv) {
 int main(int argc, char* argv[]) {
 
   FILE* video_fp = NULL;
+  filename = (char*)malloc(strlen(DEFAULT_FILENAME) + 1);
+  strcpy (filename,DEFAULT_FILENAME);
+  int res;
 
   video_generator gen;
 
@@ -107,7 +117,6 @@ int main(int argc, char* argv[]) {
 
   cfg.width = 720;
   cfg.height = 480;
-  cfg.fps = 3;
   max_frames = 30;
   cfg.format = 420;
   cfg.bitdepth = 8;
@@ -116,15 +125,21 @@ int main(int argc, char* argv[]) {
   parse_options(argc, argv);
 #endif
 
-  if (0 != video_generator_init(&cfg, &gen)) {
-    printf("Error: cannot initialize the generator.\n");
+  if (res = video_generator_init(&cfg, &gen)) {
+    printf("Error: cannot initialize the generator %d.\n", res);
     exit(1);
   }
 
-  while(1) {
+  printf("Create a YUV file: %s \nwidth: %d\nheight: %d \nfps: %d\nframes: %d\nformat: %d\nbitdepth: %d\n\n",
+            filename,
+            cfg.width,
+            cfg.height,
+            cfg.fps,
+            max_frames,
+            cfg.format,
+            cfg.bitdepth);
 
-    printf("Frame: %zu\n", gen.frame);
-
+  while (gen.frame < max_frames) {
     video_generator_update(&gen);
 
     // write video planes to a file
@@ -132,14 +147,11 @@ int main(int argc, char* argv[]) {
     fwrite((char*)gen.u, gen.ubytes, 1, video_fp);
     fwrite((char*)gen.v, gen.vbytes, 1, video_fp);
 
-    if (gen.frame > max_frames) {
-      break;
-    }
-
   }
+  printf("Frames generated: %zu\n", gen.frame);
 
 fclose(video_fp);
-
+free(filename);
 video_generator_clear(&gen);
 }
 
