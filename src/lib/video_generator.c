@@ -229,11 +229,11 @@ void select_yuv_format (video_generator* g, video_generator_settings* cfg) {
 
 int video_generator_init(video_generator_settings* cfg, video_generator* g) {
 
-  int i = 0;
+  uint32_t i = 0;
   int dx = 0;
-  int max_els = RXS_MAX_CHARS * 8; /* members per char */
+  uint32_t max_els = RXS_MAX_CHARS * 8; /* members per char */
   video_generator_char* c = NULL;
-  int num_frames; /* used for bip/bop calculations. */
+  uint32_t num_frames; /* used for bip/bop calculations. */
 
   if (!g) { return -1; }
   if (!cfg) { return -2; }
@@ -242,13 +242,11 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
   if (!cfg->fps) { return -5; }
   if (!cfg->format) { return -6; }
 
-
-
   /* initalize members */
   g->frame = 0;
   select_yuv_format(g, cfg);
   g->ybytes = cfg->width * cfg->height;
-  g->ubytes = (cfg->width * g->u_factor) * (cfg->height * g->v_factor);
+  g->ubytes = (uint32_t)(cfg->width * g->u_factor) * (uint32_t)(cfg->height * g->v_factor);
   g->vbytes = g->ubytes;
   g->nbytes = g->ybytes + g->ubytes + g->vbytes;
 
@@ -259,7 +257,6 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
   g->y = (uint8_t*)malloc(g->nbytes);
   g->u = g->y + g->ybytes;
   g->v = g->y + (g->ybytes + g->ubytes);
-
 
   g->step = (1.0 / (5 * cfg->fps)); /* move the bar in 5 seconds from top to bottom */
   g->perc = 0.0;
@@ -333,18 +330,18 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
 
     /* bip */
     dx= 0;
-    num_frames = (g->audio_bip_millis/1000.0) * g->audio_samplerate;
+    num_frames = (uint32_t)(g->audio_bip_millis/1000.0) * g->audio_samplerate;
     for (i = g->audio_samplerate;  i < (g->audio_samplerate + num_frames); ++i) {
       dx = i * 2;
-      g->audio_buffer[dx + 0] = 10000 * sin( (6.28318530718/g->audio_samplerate) * g->audio_bip_frequency * i);
+      g->audio_buffer[dx + 0] =  (int16_t)(10000 * sin( (6.28318530718/g->audio_samplerate) * g->audio_bip_frequency * i));
       g->audio_buffer[dx + 1] = g->audio_buffer[dx + 0];
     }
 
     /* bop */
-    num_frames = (g->audio_bip_millis/1000.0) * g->audio_samplerate;
+    num_frames = (uint32_t)(g->audio_bip_millis/1000.0) * g->audio_samplerate;
     for (i = (g->audio_samplerate * 3); i < (g->audio_samplerate * 3 + num_frames); ++i) {
       dx = i * 2;
-      g->audio_buffer[dx + 0] = 10000 * sin( (6.28318530718/g->audio_samplerate) * g->audio_bop_frequency * i);
+      g->audio_buffer[dx + 0] = (int16_t)(10000 * sin( (6.28318530718/g->audio_samplerate) * g->audio_bop_frequency * i));
       g->audio_buffer[dx + 1] = g->audio_buffer[dx + 0];
     }
 
@@ -426,12 +423,11 @@ int video_generator_clear(video_generator* g) {
 /* generates a new frame and stores it in the y, u and v members */
 int video_generator_update(video_generator* g) {
 
-  double perc;
   int is_bip, is_bop;
-  int text_w, text_x, text_y, i;
-  int32_t bar_h, time, speed, start_y, nlines, h;
+  int text_w, text_x, text_y;
+  int32_t bar_h, start_y, nlines, h;
   uint64_t days, hours, minutes, seconds;
-  uint32_t stride, end_y;
+  uint32_t stride, end_y, i;
   char timebuf[512] = { 0 } ;
   int text_r, text_g, text_b;
   int rc, gc, bc, yc, uc, vc, dx;
@@ -455,7 +451,7 @@ int video_generator_update(video_generator* g) {
 
   h = g->height - 1;
   bar_h = g->height / 5;
-  start_y = -bar_h + (g->perc * (h + bar_h));
+  start_y = -bar_h +  (int32_t)(g->perc * (h + bar_h));
 
   /* how many lines of the bar are visible */
   if (start_y < 0) {
@@ -475,7 +471,7 @@ int video_generator_update(video_generator* g) {
     g->perc = 0.0;
   }
 
-  if (nlines + start_y > g->height || nlines < 0 || start_y < 0 || start_y >= g->height) {
+  if (nlines + start_y >  (int32_t)g->height || nlines < 0 || start_y < 0 || start_y >=  (int32_t)g->height) {
     printf("Error: this shouldn't happen.. writing outside the buffer: %d, %d, %d\n", nlines, (nlines + start_y), start_y);
     return -1;
   }
@@ -493,22 +489,22 @@ int video_generator_update(video_generator* g) {
     fill(g, i * (g->width / 7), 0, (g->width / 7), g->height, rc, gc, bc);
   }
 
-  rc = 255 - (g->perc * 255);
-  gc = 30 + (g->perc * 235);
-  bc = 150 + (g->perc * 205);
+  rc = 255 - (int)(g->perc * 255);
+  gc = 30 + (int)(g->perc * 235);
+  bc = 150 + (int)(g->perc * 205);
   yc = RGB2Y(rc, gc, bc);
   uc = RGB2U(rc, gc, bc);
   vc = RGB2V(rc, gc, bc);
 
   /* fill y channel */
-  for (i = start_y; i < (start_y + nlines); ++i) {
+  for (i = start_y; i < (uint32_t)(start_y + nlines); ++i) {
     memset(g->y + (i * g->width), yc, g->width);
   }
 
   /* fill u and v channel */
-  start_y = start_y * g->u_factor;
-  stride = g->width * g->v_factor;
-  end_y = start_y + nlines * g->u_factor;
+  start_y = (int32_t)(start_y * g->u_factor);
+  stride = (int32_t)(g->width * g->v_factor);
+  end_y = start_y + (int32_t)(nlines * g->u_factor);
 
   for (i = start_y; i < end_y; ++i) {
     memset(g->u + i * stride, uc, stride);
@@ -563,17 +559,17 @@ static int fill(video_generator* gen, int x, int y, int w, int h, int r, int g, 
   int yc = RGB2Y(r,g,b);
   int uc = RGB2U(r,g,b);
   int vc = RGB2V(r,g,b);
-  int j = 0;
+  uint32_t j = 0;
 
   // UV
-  int xx = x * gen->u_factor;
-  int yy = y * gen->v_factor;
-  int half_w = gen->width * gen->u_factor;
-  int hh = h * gen->v_factor;
-  int ww = w * gen->u_factor;
+  uint32_t xx = (uint32_t)(x * gen->u_factor);
+  uint32_t yy = (uint32_t)(y * gen->v_factor);
+  uint32_t half_w = (uint32_t)(gen->width * gen->u_factor);
+  uint32_t hh = (uint32_t)(h * gen->v_factor);
+  uint32_t ww = (uint32_t)(w * gen->u_factor);
 
   // y
-  for (j = y; j < (y + h); ++j) {
+  for (j = y; j < (uint32_t)(y + h); ++j) {
     memset(gen->y + j * gen->width + x, yc, w);
   }
 
@@ -589,8 +585,8 @@ static int fill(video_generator* gen, int x, int y, int w, int h, int r, int g, 
 static int add_number_string(video_generator* gen, const char* str, int x, int y) {
 
  video_generator_char* found_char = NULL;
- int len = strlen(str);
- int i = 0;
+ size_t len = strlen(str);
+ size_t i = 0;
  int k = 0;
 
  for (i = 0; i < len; ++i) {
@@ -651,17 +647,17 @@ static void* audio_thread(void* gen) {
   uint32_t nbytes = 0;
   uint8_t* tmp_buffer = NULL;
   uint8_t* audio_buffer = NULL;
-  int bytes_to_end = 0;
-  int bytes_from_start = 0;
-  int bytes_needed = 0;
-  int bytes_total = 0;
+  uint64_t bytes_to_end = 0;
+  uint64_t bytes_from_start = 0;
+  uint64_t bytes_needed = 0;
+  uint64_t bytes_total = 0;
   int is_bip = 0;
   int is_bop = 0;
   int prev_is_bip = 0;
   int prev_is_bop = 0;
-  int num_bip_frames = 0;
+  uint16_t num_bip_frames = 0;
   int num_bip_bytes = 0;
-  int num_bop_frames = 0;
+  uint16_t num_bop_frames = 0;
   int num_bop_bytes = 0;
 
 
@@ -677,7 +673,7 @@ static void* audio_thread(void* gen) {
   now = 0;
   timeout = 0;
   dx = 0;
-  delay = (g->audio_nsamples * ((double)1.0/g->audio_samplerate) * 1e9);
+  delay = (uint64_t)(g->audio_nsamples * ((double)1.0/g->audio_samplerate) * 1e9);
   nbytes = g->audio_nsamples * sizeof(int16_t) * g->audio_nchannels;
   tmp_buffer = (uint8_t*)malloc(nbytes);
   audio_buffer = (uint8_t*)g->audio_buffer;
@@ -685,9 +681,9 @@ static void* audio_thread(void* gen) {
   bytes_total = g->audio_nbytes;
 
   /* calc the bip/bop start and end positions. */
-  num_bip_frames = (g->audio_bip_millis/1000.0) * g->audio_samplerate;
+  num_bip_frames =  (uint16_t)(g->audio_bip_millis/1000.0) * g->audio_samplerate;
   num_bip_bytes = sizeof(int16_t) * g->audio_nchannels * num_bip_frames;
-  num_bop_frames = (g->audio_bop_millis/1000.0) * g->audio_samplerate;
+  num_bop_frames =(uint16_t) (g->audio_bop_millis/1000.0) * g->audio_samplerate;
   num_bop_bytes = sizeof(int16_t) * g->audio_nchannels * num_bop_frames;
   bip_start_dx = (bytes_total / g->audio_nseconds);
   bip_end_dx = bip_start_dx + num_bip_bytes;
