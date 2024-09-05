@@ -22,7 +22,7 @@
 
 /* ----------------------------------------------------------------------------------- */
 
-static void on_audio(const int16_t* samples, uint32_t nbytes, uint32_t nframes);
+static void on_audio(const int16_t* samples, uint64_t nbytes, uint32_t nframes);
 static void on_sigh(int s);
 
 /* ----------------------------------------------------------------------------------- */
@@ -113,7 +113,7 @@ static void on_sigh(int s) {
   must_run = 0;
 }
 
-static void on_audio(const int16_t* samples, uint32_t nbytes, uint32_t nframes) {
+static void on_audio(const int16_t* samples, uint64_t nbytes, uint32_t nframes) {
   total_audio_frames += nframes; /* this can be used for our timebase */
   now = ((1.0 / 44100.0) * 1e9) * total_audio_frames; /* not used in this example but this could be used as your timebase. */
   goal_frame = now / ((uint64_t)gen.fps * 1e3); /* set the goal frame up to which we have to generate frames. */

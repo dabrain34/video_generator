@@ -225,7 +225,7 @@ typedef struct video_generator_char video_generator_char;
    @param nbytes         The number of bytes in `samples`
    @param nframes        The number of frames in `samples`.
 */
-typedef void(*video_generator_audio_callback)(const int16_t* samples, uint32_t nbytes, uint32_t nframes);
+typedef void(*video_generator_audio_callback)(const int16_t* samples, uint64_t nbytes, uint32_t nframes);
 
 struct video_generator_char {
   int id;
@@ -284,7 +284,7 @@ struct video_generator {
   uint16_t audio_bop_frequency;                           /* frequency for the bop sound, 300hz. */
   uint32_t audio_bip_millis;                              /* number of millis for the bip sound */
   uint32_t audio_bop_millis;                              /* number of millis for the bop sound */
-  uint32_t audio_nbytes;                                  /* number of bytes in audio_buffer. */
+  uint64_t audio_nbytes;                                  /* number of bytes in audio_buffer. */
   uint32_t audio_nsamples;                                /* number of samples that are passed to the audio callback whenever needed. */
   int16_t* audio_buffer;                                  /* this will contain the audio samples */
   video_generator_audio_callback audio_callback;          /* will be called from the thread when the user needs to process audio. */
