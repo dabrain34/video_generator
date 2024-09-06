@@ -1,0 +1,26 @@
+{
+    // Thread {0} {1}
+    // Stack Frame {0}, line {1}, {2}
+    // Running
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(LLDB)videogen",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/build.debug/src/examples/videogen", // Replace with your program's path
+            "args": [
+                "--width",
+                "720",
+                "--height",
+                "480",
+                "--format",
+                "420",
+                "--bitdepth",
+                "8"
+            ], // Optional: command-line arguments for your program
+            "cwd": "${workspaceFolder}/build/build.debug/", // Optional: working directory for your program
+            "env": {},
+        },
+    ]
+}
