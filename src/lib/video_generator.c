@@ -465,9 +465,9 @@ int video_generator_clear(video_generator* g) {
 int video_generator_update(video_generator* g) {
 
   uint8_t is_bip, is_bop;
-  uint32_t text_w, text_x, text_y;
+  uint32_t text_w, text_h, text_x, text_y;
   int32_t bar_h, start_y, nlines, h;
-  uint64_t days, hours, minutes, seconds;
+  uint64_t minutes, seconds;
   uint32_t stride, end_y, i, k;
   char timebuf[512] = { 0 } ;
   uint8_t text_r, text_g, text_b;
@@ -592,22 +592,28 @@ int video_generator_update(video_generator* g) {
     }
   }
 
+
   seconds = (g->frame/ g->fps_den);
   minutes = (seconds / 60);
-  hours = minutes / 60;
-  days = hours / 24;
   minutes %= 60;
   seconds %= 60;
-  hours %= 24;
-  text_w = 360; /* manually measured */
-  text_x = (g->width / 2) - (text_w / 2);
-  text_y = (g->height / 2) - 50;
+  text_w = 170; /* manually measured */
+  text_h = 100;
+  if (g->width > text_w && g->height > text_h) {
+    if(g->width > text_w)
+      text_x = (g->width / 2) - (text_w / 2);
+    else
+      text_x = 0;
+    if((g->height) > text_h)
+      text_y = (g->height / 2) - (text_h / 2);
+    else
+      text_y = 0;
 
-  fill(g, text_x, text_y, text_w, 100, text_r, text_g, text_b);
+    fill(g, text_x, text_y, text_w, text_h, text_r, text_g, text_b);
 
-  sprintf(timebuf, "%03zu:%02zu:%02zu:%02zu", days, hours, minutes, seconds);
-  add_number_string(g, timebuf, text_x + 20, text_y + 20);
-
+    sprintf(timebuf, "%02zu:%02zu", minutes, seconds);
+    add_number_string(g, timebuf, text_x + 20, text_y + 20);
+  }
   g->frame++;
   return 0;
 }
