@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <video_generator.h>
+#include <video_convert.h>
 #ifndef _WIN32
 #include "getopt_long.h"
 #endif
@@ -140,13 +141,24 @@ int main(int argc, char* argv[]) {
             cfg.bitdepth);
 
   while (gen.frame < max_frames) {
+    uint16_t *nv12Y, *nv12UV, *srcY, *srcU, *srcV;
     video_generator_update(&gen);
+
+    convert8to16(gen.y, &srcY, gen.ybytes);
+    convert8to16(gen.u, &srcU, gen.ubytes);
+    convert8to16(gen.v, &srcV, gen.vbytes);
+
+    I420ToNV12_10bit(srcY, srcU, srcV, &nv12Y, &nv12UV, cfg.width, cfg.height);
+    NV12ToI420_10bit(nv12Y, nv12UV, &srcY, &srcU, &srcV, cfg.width, cfg.height);
+
+    convert16to8(srcY, &gen.y, gen.ybytes / 2);
+    convert16to8(srcU, &gen.u, gen.ubytes / 2 );
+    convert16to8(srcV, &gen.v, gen.vbytes / 2);
 
     // write video planes to a file
     fwrite((char*)gen.y, gen.ybytes, 1,  video_fp);
     fwrite((char*)gen.u, gen.ubytes, 1, video_fp);
     fwrite((char*)gen.v, gen.vbytes, 1, video_fp);
-
   }
   printf("Frames generated: %zu\n", gen.frame);
 
