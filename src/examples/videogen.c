@@ -42,7 +42,7 @@ void usage(char *progname) {
     printf("    -h, --help          show this help\n");
     printf("    -W, --width         width\n");
     printf("    -H, --height        height\n");
-    printf("    -n, --max-frames    height\n");
+    printf("    -n, --max-frames    max frames\n");
     printf("    -F, --fps           fps\n");
     printf("    -f, --format        format\n");
     printf("    -b, --bitdepth      bitdepth\n");
@@ -67,7 +67,7 @@ int parse_options(int argc, char **argv) {
 
     int opt;
     while ((opt = getopt_long(argc, argv,
-                              "+hW:H:M:f:F:b:o:",
+                              "+hW:H:n:f:F:b:o:",
                               long_options, NULL)) > 0) {
         switch (opt) {
             default:
@@ -91,7 +91,7 @@ int parse_options(int argc, char **argv) {
             case 'b':
                 cfg.bitdepth = atoi(optarg);
                 break;
-            case 'M':
+            case 'n':
                 max_frames = atoi(optarg);
             case 'o':
                 free(filename);
