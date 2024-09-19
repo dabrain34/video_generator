@@ -204,6 +204,9 @@ extern "C" {
 
 #endif
 
+#define BYTE_ORDER_LITTLE_ENDIAN 0
+#define BYTE_ORDER_BIG_ENDIAN    1
+
 /* ----------------------------------------------------------------------------------- */
 /*                          V I D E O   G E N E R A T O  R                             */
 /* ----------------------------------------------------------------------------------- */
@@ -243,7 +246,8 @@ struct video_generator_settings {
   uint32_t height;
   uint32_t fps;
   uint32_t format;
-  uint8_t bitdepth;
+  uint8_t  byte_order;
+  uint8_t  bitdepth;
   uint16_t bip_frequency;
   uint16_t bop_frequency;
   video_generator_audio_callback audio_callback;
@@ -266,6 +270,7 @@ struct video_generator {
   double   v_factor;                                      /* Provide a factor to change the colorspace*/
   uint8_t  pixel_size_in_bytes;                           /* Size of the word to express the pixel 8bits = 1 byte 16 bits = 2 bytes*/
   uint8_t  pixel_factor;                                  /* pixel factor to convert from 8 bits to 10 or 12 bits*/
+  uint8_t  byte_order;                                    /* byte order or endinness for the LSB and MSB, 0 for little endian*/
   int fps_num;                                            /* framerate numerator e.g. 1. */
   int fps_den;                                            /* framerate denominator e.g. 25. */
   double fps;                                             /* framerate in microseconds, 1 fps == 1.000.000 us. */

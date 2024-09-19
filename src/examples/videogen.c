@@ -46,6 +46,7 @@ void usage(char *progname) {
     printf("    -F, --fps           fps\n");
     printf("    -f, --format        format\n");
     printf("    -b, --bitdepth      bitdepth\n");
+    printf("    -B, --bigendian     byte order\n");
     printf("    -o, --output        filename, default " DEFAULT_FILENAME "\n");
 }
 
@@ -62,12 +63,13 @@ int parse_options(int argc, char **argv) {
         {"fps",       required_argument,  NULL, 'f'},
         {"format",    required_argument,  NULL, 'F'},
         {"bitdepth",  required_argument,  NULL, 'b'},
+        {"big-endian",required_argument,  NULL, 'B'},
         {NULL,        0,                  NULL,   0}
     };
 
     int opt;
     while ((opt = getopt_long(argc, argv,
-                              "+hW:H:n:f:F:b:o:",
+                              "+hW:H:n:f:F:b:o:B",
                               long_options, NULL)) > 0) {
         switch (opt) {
             default:
@@ -93,6 +95,10 @@ int parse_options(int argc, char **argv) {
                 break;
             case 'n':
                 max_frames = atoi(optarg);
+                break;
+            case 'B':
+                cfg.byte_order = BYTE_ORDER_BIG_ENDIAN;
+                break;
             case 'o':
                 free(filename);
                 filename = (char*)malloc(strlen(optarg) + 1);
@@ -130,14 +136,15 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  printf("Create a YUV file: %s \nwidth: %d\nheight: %d \nfps: %d\nframes: %d\nformat: %d\nbitdepth: %d\n\n",
+  printf("Create a YUV file: %s \nwidth: %d\nheight: %d \nfps: %d\nframes: %d\nformat: %d\nbitdepth: %d\nbigendian:%d\n",
             filename,
             cfg.width,
             cfg.height,
             cfg.fps,
             max_frames,
             cfg.format,
-            cfg.bitdepth);
+            cfg.bitdepth,
+            cfg.byte_order);
 
   while (gen.frame < max_frames) {
     video_generator_update(&gen);
