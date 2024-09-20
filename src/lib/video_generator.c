@@ -295,6 +295,7 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
   if (!cfg->format) { cfg->format = DEFAULT_FORMAT; }
   if (!cfg->bitdepth) { cfg->bitdepth = DEFAULT_BITDEPTH; }
   if (!cfg->byte_order) { cfg->byte_order = DEFAULT_BYTE_ORDER; }
+  if (!cfg->onecolor) { cfg->onecolor = 0; }
 
   /* initalize members */
   g->frame = 0;
@@ -318,6 +319,7 @@ int video_generator_init(video_generator_settings* cfg, video_generator* g) {
   g->fps_num = 1;
   g->fps_den = cfg->fps;
   g->byte_order = cfg->byte_order;
+  g->onecolor = cfg->onecolor;
 
   /* initialize the characters */
   while (i < max_els) {
@@ -462,6 +464,7 @@ int video_generator_clear(video_generator* g) {
   g->nbytes = 0;
   g->u_factor = 0.0;
   g->v_factor = 0.0;
+  g->onecolor = 0;
 
   g->audio_nchannels = 0;
   g->audio_nseconds = 0;
@@ -538,6 +541,16 @@ int video_generator_update(video_generator* g) {
   memset(g->y, 0x00, g->ybytes);
   memset(g->u, 0x00, g->ubytes);
   memset(g->v, 0x00, g->vbytes);
+
+  if(g->onecolor)
+  {
+    dx = (int)(g->frame % 7) * 3;
+    rc = colors[dx + 0];
+    gc = colors[dx + 1];
+    bc = colors[dx + 2];
+    fill(g, 0, 0, g->width, g->height, rc, gc, bc);
+    goto beach;
+  }
 
   /* Draw the background with 7 colors */
   for (i = 0; i < 7; ++i) {
@@ -632,6 +645,8 @@ int video_generator_update(video_generator* g) {
     stride = (text_x + 20) * g->pixel_size_in_bytes;
     add_number_string(g, timebuf, stride , text_y + 20);
   }
+
+beach:
   g->frame++;
   return 0;
 }

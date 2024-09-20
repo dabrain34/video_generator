@@ -47,6 +47,7 @@ void usage(char *progname) {
     printf("    -f, --format        format\n");
     printf("    -b, --bitdepth      bitdepth\n");
     printf("    -B, --bigendian     byte order\n");
+    printf("    -c, --onecolor      one color background\n");
     printf("    -o, --output        filename, default " DEFAULT_FILENAME "\n");
 }
 
@@ -64,12 +65,13 @@ int parse_options(int argc, char **argv) {
         {"format",    required_argument,  NULL, 'F'},
         {"bitdepth",  required_argument,  NULL, 'b'},
         {"big-endian",required_argument,  NULL, 'B'},
+        {"onecolor",  required_argument,  NULL, 'c'},
         {NULL,        0,                  NULL,   0}
     };
 
     int opt;
     while ((opt = getopt_long(argc, argv,
-                              "+hW:H:n:f:F:b:o:B",
+                              "+hW:H:n:f:F:b:o:Bc:",
                               long_options, NULL)) > 0) {
         switch (opt) {
             default:
@@ -98,6 +100,9 @@ int parse_options(int argc, char **argv) {
                 break;
             case 'B':
                 cfg.byte_order = BYTE_ORDER_BIG_ENDIAN;
+                break;
+            case 'c':
+                cfg.onecolor = atoi(optarg);
                 break;
             case 'o':
                 free(filename);

@@ -248,6 +248,7 @@ struct video_generator_settings {
   uint32_t format;
   uint8_t  byte_order;
   uint8_t  bitdepth;
+  uint8_t onecolor;
   uint16_t bip_frequency;
   uint16_t bop_frequency;
   video_generator_audio_callback audio_callback;
@@ -280,6 +281,7 @@ struct video_generator {
   int font_w;                                             /* width of the bitmap (which is stored in video_generator.c). */
   int font_h;                                             /* height of the bitmap (which is stored in video_generator.c). */
   int font_line_height;
+  uint8_t onecolor;                                       /* Generate only one color*/
 
   /* Audio */
   uint16_t audio_nchannels;                               /* number of audio channels, for now always 2. */
