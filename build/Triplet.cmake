@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 # ${tri_arch}             - x86_64, i386
 # ${tri_compiler}         - clang, gcc, vs2010, vs2012

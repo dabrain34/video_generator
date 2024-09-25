@@ -231,14 +231,14 @@ typedef struct video_generator_char video_generator_char;
 typedef void(*video_generator_audio_callback)(const int16_t* samples, uint64_t nbytes, uint32_t nframes);
 
 struct video_generator_char {
-  int id;
-  int x;
-  int y;
-  int width;
-  int height;
-  int xoffset;
-  int yoffset;
-  int xadvance;
+  char id;
+  uint32_t x;
+  uint32_t y;
+  uint32_t width;
+  uint32_t height;
+  uint32_t xoffset;
+  uint32_t yoffset;
+  uint32_t xadvance;
 };
 
 struct video_generator_settings {
@@ -272,26 +272,26 @@ struct video_generator {
   uint8_t  pixel_size_in_bytes;                           /* Size of the word to express the pixel 8bits = 1 byte 16 bits = 2 bytes*/
   uint8_t  pixel_factor;                                  /* pixel factor to convert from 8 bits to 10 or 12 bits*/
   uint8_t  byte_order;                                    /* byte order or endinness for the LSB and MSB, 0 for little endian*/
-  int fps_num;                                            /* framerate numerator e.g. 1. */
-  int fps_den;                                            /* framerate denominator e.g. 25. */
+  uint32_t fps_num;                                       /* framerate numerator e.g. 1. */
+  uint32_t fps_den;                                       /* framerate denominator e.g. 25. */
   double fps;                                             /* framerate in microseconds, 1 fps == 1.000.000 us. */
   double step;                                            /* used to create/translate the moving bar. */
   double perc;                                            /* position of the moving bar in percentages. */
   video_generator_char chars[RXS_MAX_CHARS];              /* bitmap characters, `0-9` and `:` */
-  int font_w;                                             /* width of the bitmap (which is stored in video_generator.c). */
-  int font_h;                                             /* height of the bitmap (which is stored in video_generator.c). */
-  int font_line_height;
+  uint32_t font_w;                                        /* width of the bitmap (which is stored in video_generator.c). */
+  uint32_t font_h;                                        /* height of the bitmap (which is stored in video_generator.c). */
+  uint32_t font_line_height;
   uint8_t onecolor;                                       /* Generate only one color*/
 
   /* Audio */
   uint16_t audio_nchannels;                               /* number of audio channels, for now always 2. */
-  uint8_t audio_nseconds;                                 /* the number of seconds of audio we have in the audio_buffer. Always 4. */
+  uint8_t  audio_nseconds;                                /* the number of seconds of audio we have in the audio_buffer. Always 4. */
   uint16_t audio_samplerate;                              /* for now always: 44100 */
   uint16_t audio_bip_frequency;                           /* frequency for the bip sound, 600hz. */
   uint16_t audio_bop_frequency;                           /* frequency for the bop sound, 300hz. */
   uint32_t audio_bip_millis;                              /* number of millis for the bip sound */
   uint32_t audio_bop_millis;                              /* number of millis for the bop sound */
-  uint64_t audio_nbytes;                                  /* number of bytes in audio_buffer. */
+  size_t   audio_nbytes;                                  /* number of bytes in audio_buffer. */
   uint32_t audio_nsamples;                                /* number of samples that are passed to the audio callback whenever needed. */
   int16_t* audio_buffer;                                  /* this will contain the audio samples */
   video_generator_audio_callback audio_callback;          /* will be called from the thread when the user needs to process audio. */
