@@ -641,7 +641,7 @@ int video_generator_update(video_generator* g) {
 
     fill(g, text_x, text_y, text_w, text_h, text_r, text_g, text_b);
 
-    sprintf(timebuf, "%02zu:%02zu", minutes, seconds);
+    sprintf(timebuf, "%02zu:%02zu", (size_t)minutes, (size_t)seconds);
     stride = (text_x + 20) * g->pixel_size_in_bytes;
     add_number_string(g, timebuf, stride , text_y + 20);
   }
@@ -760,12 +760,12 @@ static void* audio_thread(void* gen) {
   video_generator* g;
   uint8_t must_stop;
   uint64_t now, delay, timeout, dx, bip_start_dx, bip_end_dx, bop_start_dx, bop_end_dx;
-  uint64_t nbytes = 0;
+  size_t nbytes = 0;
   uint8_t* tmp_buffer = NULL;
   uint8_t* audio_buffer = NULL;
-  uint64_t bytes_to_end = 0;
-  uint64_t bytes_from_start = 0;
-  uint64_t bytes_needed = 0;
+  size_t bytes_to_end = 0;
+  size_t bytes_from_start = 0;
+  size_t bytes_needed = 0;
   uint64_t bytes_total = 0;
   uint8_t is_bip = 0;
   uint8_t is_bop = 0;
