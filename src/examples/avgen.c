@@ -29,6 +29,7 @@ static void on_sigh(int s);
 
 uint64_t now = 0;
 uint64_t total_audio_frames = 0;
+uint64_t total_nbytes = 0;
 video_generator_settings cfg;
 video_generator gen;
 uint8_t must_run = 1;
@@ -109,12 +110,13 @@ int main() {
 /* ----------------------------------------------------------------------------------- */
 
 static void on_sigh(int s) {
-  printf("\nGot signal, stopping.\n");
+  printf("\nGot signal %d, stopping.\n", s);
   must_run = 0;
 }
 
 static void on_audio(const int16_t* samples, uint64_t nbytes, uint32_t nframes) {
   total_audio_frames += nframes; /* this can be used for our timebase */
-  now = ((1.0 / 44100.0) * 1e9) * total_audio_frames; /* not used in this example but this could be used as your timebase. */
-  goal_frame = now / ((uint64_t)gen.fps * 1e3); /* set the goal frame up to which we have to generate frames. */
+  total_nbytes += nbytes;
+  now = (uint64_t)((1.0 / 44100.0) * 1e9) * total_audio_frames; /* not used in this example but this could be used as your timebase. */
+  goal_frame = (uint64_t)((double)now / ((double)gen.fps * 1e3)); /* set the goal frame up to which we have to generate frames. */
 }

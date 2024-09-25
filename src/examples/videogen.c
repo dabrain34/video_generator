@@ -81,28 +81,28 @@ int parse_options(int argc, char **argv) {
                 usage(argv[0]);
                 exit(0);
             case 'W':
-                cfg.width = atoi(optarg);
+                cfg.width = (uint32_t)atoi(optarg);
                 break;
             case 'H':
-                cfg.height = atoi(optarg);
+                cfg.height = (uint32_t)atoi(optarg);
                 break;
             case 'f':
-                cfg.fps = atoi(optarg);
+                cfg.fps = (uint32_t)atoi(optarg);
                 break;
             case 'F':
-                cfg.format = atoi(optarg);
+                cfg.format = (uint32_t)atoi(optarg);
                 break;
             case 'b':
-                cfg.bitdepth = atoi(optarg);
+                cfg.bitdepth = (uint8_t)atoi(optarg);
                 break;
             case 'n':
-                max_frames = atoi(optarg);
+                max_frames = (uint32_t)atoi(optarg);
                 break;
             case 'B':
                 cfg.byte_order = BYTE_ORDER_BIG_ENDIAN;
                 break;
             case 'c':
-                cfg.onecolor = atoi(optarg);
+                cfg.onecolor = (uint8_t)atoi(optarg);
                 break;
             case 'o':
                 free(filename);
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
   parse_options(argc, argv);
 #endif
 
-  if (res = video_generator_init(&cfg, &gen)) {
+  if ((res = video_generator_init(&cfg, &gen))) {
     printf("Error: cannot initialize the generator %d.\n", res);
     exit(1);
   }
