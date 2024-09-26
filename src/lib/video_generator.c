@@ -763,7 +763,7 @@ static void* audio_thread(void* gen) {
   size_t bytes_to_end = 0;
   size_t bytes_from_start = 0;
   size_t bytes_needed = 0;
-  uint64_t bytes_total = 0;
+  size_t bytes_total = 0;
   uint8_t is_bip = 0;
   uint8_t is_bop = 0;
   uint8_t prev_is_bip = 0;
@@ -820,7 +820,7 @@ static void* audio_thread(void* gen) {
       is_bip = (dx >= bip_start_dx && dx <= bip_end_dx) ? 1 : 0;
       is_bop = (dx >= bop_start_dx && dx <= bop_end_dx) ? 1 : 0;
 
-      bytes_to_end = bytes_total - dx;
+      bytes_to_end = bytes_total - (size_t)dx;
       if (0 == bytes_to_end) {
         dx = 0;
         bytes_to_end = bytes_total;
