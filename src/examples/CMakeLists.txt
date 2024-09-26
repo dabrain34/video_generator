@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.10)
 set(VG_APP_VGEN videogen)
 set(VG_APP_AVGEN audiovideogen)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-parameter")
+if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-parameter")
+endif()
 
 include_directories(
   ${CMAKE_CURRENT_LIST_DIR}/src/lib
