@@ -88,10 +88,10 @@ int main() {
       video_generator_update(&gen);
 
       if (1 != fwrite((char*)gen.y, gen.nbytes, 1, video_fp)) {
-        printf("Failed to write frame %zu to file.\n", gen.frame);
+        printf("Failed to write frame %zu to file.\n", (size_t)gen.frame);
       }
 
-      printf("Frame: %zu/%zu\n", gen.frame, goal_copy);
+      printf("Frame: %zu/%zu\n", (size_t)gen.frame, (size_t)goal_copy);
     }
     must_run = 0;
   }

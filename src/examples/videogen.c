@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     fwrite((char*)gen.v, gen.vbytes, 1, video_fp);
 
   }
-  printf("Frames generated: %zu\n", gen.frame);
+  printf("Frames generated: %zu\n", (size_t)gen.frame);
 
 fclose(video_fp);
 free(filename);
