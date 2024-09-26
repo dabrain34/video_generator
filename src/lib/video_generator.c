@@ -166,9 +166,6 @@
 #elif defined(__APPLE__)
 #  define HAVE_MACH_TIMER
 #  include <mach/mach_time.h>
-#elif defined(_WIN32)
-#  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
 #endif
 static uint64_t ns() {
   static uint64_t is_init = 0;
