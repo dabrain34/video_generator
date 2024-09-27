@@ -541,7 +541,7 @@ int video_generator_update(video_generator* g) {
 
   if(g->onecolor)
   {
-    dx = (uint8_t)(g->frame % 7) * 3;
+    dx = (uint8_t)((g->frame % 7) * 3);
     rc = colors[dx + 0];
     gc = colors[dx + 1];
     bc = colors[dx + 2];
@@ -559,9 +559,9 @@ int video_generator_update(video_generator* g) {
   }
 
   /* Draw the moving bar */
-  rc = 255 - (uint8_t)(g->perc * 255);
-  gc = 30 + (uint8_t)(g->perc * 235);
-  bc = 150 + (uint8_t)(g->perc * 205);
+  rc = (uint8_t)(255 - (uint8_t)(g->perc * 255));
+  gc = (uint8_t)(30 + (uint8_t)(g->perc * 235));
+  bc = (uint8_t)(150 + (uint8_t)(g->perc * 205));
   yc = (uint16_t)(RGB2Y(rc, gc, bc) * g->pixel_factor);
   uc = (uint16_t)(RGB2U(rc, gc, bc) * g->pixel_factor);
   vc = (uint16_t)(RGB2V(rc, gc, bc) * g->pixel_factor);
@@ -794,9 +794,9 @@ static void* audio_thread(void* gen) {
   bytes_total = g->audio_nbytes;
 
   /* calc the bip/bop start and end positions. */
-  num_bip_frames =  (uint16_t)(g->audio_bip_millis/1000.0) * g->audio_samplerate;
+  num_bip_frames =  (uint16_t)((g->audio_bip_millis/1000.0) * g->audio_samplerate);
   num_bip_bytes = sizeof(int16_t) * g->audio_nchannels * num_bip_frames;
-  num_bop_frames =(uint16_t) (g->audio_bop_millis/1000.0) * g->audio_samplerate;
+  num_bop_frames =(uint16_t)((g->audio_bop_millis/1000.0) * g->audio_samplerate);
   num_bop_bytes = sizeof(int16_t) * g->audio_nchannels * num_bop_frames;
   bip_start_dx = (bytes_total / g->audio_nseconds);
   bip_end_dx = bip_start_dx + num_bip_bytes;
